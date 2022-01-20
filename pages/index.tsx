@@ -1,7 +1,11 @@
+import { times } from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useState } from "react";
 
 const Home: NextPage = () => {
+  const [attempts, setAttempts] = useState<String[]>(times(6, () => ""));
+
   return (
     <div>
       <Head>
@@ -10,7 +14,29 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="bg-slate-800 min-h-screen"></main>
+      <main className="bg-slate-50 min-h-screen">
+        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg min-h-screen">
+          <div className="py-8 flex flex-col space-y-2">
+            {attempts.map((attempt, index) => {
+              return (
+                <div
+                  className="flex space-x-2 justify-center"
+                  key={`attempt-${index}`}
+                >
+                  {times(5, (charIndex) => {
+                    return (
+                      <div
+                        className="flex-1 aspect-square border-4"
+                        key={`attempt-${index}-${charIndex}`}
+                      ></div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
