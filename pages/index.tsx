@@ -1,7 +1,8 @@
+import axios from "axios";
 import { times } from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
   const [attempts, setAttempts] = useState<String[]>(times(6, () => ""));
