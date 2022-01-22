@@ -1,3 +1,7 @@
+type Attempt = {
+  letters: AttemptLetter[];
+};
+
 type AttemptLetter = { char: string; result?: LetterStatus };
 
 type AttemptResponse = {

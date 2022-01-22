@@ -5,12 +5,14 @@ import Head from "next/head";
 import type { NextPage } from "next";
 import Keyboard from "../components/Keyboard";
 import LetterBlock from "../components/LetterBlock";
+import {
+  appendAttemptResult,
+  attemptToString,
+  generateLetterHistoryFromAttemptResult,
+} from "../helpers/attempts";
+import { hasWon } from "../helpers/game";
 
-type Attempt = {
-  letters: AttemptLetter[];
-};
-
-type GameStatus = "PLAYING" | "WON" | "LOST";
+type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
 
 const Home: NextPage = () => {
   const [attempts, setAttempts] = useState<Attempt[]>(
@@ -19,25 +21,24 @@ const Home: NextPage = () => {
     }))
   );
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
+  const [isBusy, setIsBusy] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
 
   const gameStatus: GameStatus = useMemo(() => {
+    if (isBusy) {
+      return "BUSY";
+    }
     if (currentAttemptIndex > 6) {
       return "LOST";
     }
-    if (
-      attempts.find(
-        (attempt) =>
-          attempt.letters.filter(({ result }) => result === "GREEN").length ===
-          5
-      )
-    ) {
+    if (hasWon(attempts)) {
       return "WON";
     }
     return "PLAYING";
-  }, [attempts, currentAttemptIndex]);
+  }, [isBusy, attempts, currentAttemptIndex]);
 
   const handleSubmitAttempt = useCallback(async () => {
+    setIsBusy(true);
     const currentAttempt = attempts[currentAttemptIndex];
     try {
       if (currentAttempt.letters.length < 5) {
@@ -47,50 +48,23 @@ const Home: NextPage = () => {
         "/api/attempt",
         {
           params: {
-            word: currentAttempt.letters.reduce(
-              (agg, char) => `${agg}${char.char}`,
-              ""
-            ),
+            word: attemptToString(currentAttempt),
           },
         }
       );
       setAttempts(
-        attempts.map((attempt, index) => {
-          if (index !== currentAttemptIndex) {
-            return attempt;
-          }
-          return {
-            letters: currentAttempt.letters.map((char, index) => {
-              const result = attemptResult.letters[index].status;
-              return {
-                ...char,
-                result,
-              };
-            }),
-          };
-        })
+        appendAttemptResult(attempts, currentAttemptIndex, attemptResult)
       );
-      setCurrentAttemptIndex(currentAttemptIndex + 1);
-      const newLetterHistory = [...letterHistory];
-      attemptResult.letters.forEach((letter) => {
-        const existingHistoryIndex = newLetterHistory.findIndex(
-          (history) => history.char === letter.char
+      setTimeout(() => {
+        setCurrentAttemptIndex(currentAttemptIndex + 1);
+        setLetterHistory(
+          generateLetterHistoryFromAttemptResult(
+            letterHistory,
+            attemptResult.letters
+          )
         );
-        if (existingHistoryIndex === -1) {
-          newLetterHistory.push({
-            char: letter.char,
-            result: letter.status,
-          });
-          return;
-        }
-        if (
-          newLetterHistory[existingHistoryIndex].result === "YELLOW" &&
-          letter.status === "GREEN"
-        ) {
-          newLetterHistory[existingHistoryIndex].result = letter.status;
-        }
-      });
-      setLetterHistory(newLetterHistory);
+        setIsBusy(false);
+      }, 5 * 500);
     } catch (error) {
       alert(error);
     }
