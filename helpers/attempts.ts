@@ -20,7 +20,10 @@ export const appendAttemptResult = (
   });
 };
 
-export const attemptToString = (attempt: Attempt): string => {
+export const attemptToString = (attempt?: Attempt | null): string => {
+  if (!attempt) {
+    return "";
+  }
   return attempt.letters.reduce((agg, char) => `${agg}${char.char}`, "");
 };
 
@@ -48,4 +51,13 @@ export const generateLetterHistoryFromAttemptResult = (
     }
   });
   return newLetterHistory;
+};
+
+export const getWinningAttempt = (attempts: Attempt[]): Attempt | null => {
+  return (
+    attempts.find(
+      (attempt) =>
+        attempt.letters.filter(({ result }) => result === "GREEN").length === 5
+    ) || null
+  );
 };

@@ -1,6 +1,5 @@
+import { getWinningAttempt } from "./attempts";
+
 export const hasWon = (attempts: Attempt[]): boolean => {
-  return !!attempts.find(
-    (attempt) =>
-      attempt.letters.filter(({ result }) => result === "GREEN").length === 5
-  );
+  return !!getWinningAttempt(attempts);
 };

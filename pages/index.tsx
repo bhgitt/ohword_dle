@@ -11,6 +11,7 @@ import {
   generateLetterHistoryFromAttemptResult,
 } from "../helpers/attempts";
 import { hasWon } from "../helpers/game";
+import WinModal from "../components/WinModal";
 
 type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
 
@@ -21,6 +22,7 @@ const Home: NextPage = () => {
     }))
   );
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
+  const [dismissedWinModal, setDismissedWinModal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
 
@@ -38,6 +40,9 @@ const Home: NextPage = () => {
   }, [isBusy, attempts, currentAttemptIndex]);
 
   const handleSubmitAttempt = useCallback(async () => {
+    if (gameStatus !== "PLAYING") {
+      return;
+    }
     setIsBusy(true);
     const currentAttempt = attempts[currentAttemptIndex];
     try {
@@ -68,7 +73,7 @@ const Home: NextPage = () => {
     } catch (error) {
       alert(error);
     }
-  }, [attempts, currentAttemptIndex, letterHistory]);
+  }, [attempts, currentAttemptIndex, gameStatus, letterHistory]);
 
   const handleKeyboardChange = useCallback(
     (newText: string) => {
@@ -133,6 +138,13 @@ const Home: NextPage = () => {
           onSubmit={handleSubmitAttempt}
         />
       </main>
+      <WinModal
+        attempts={attempts}
+        visible={gameStatus === "WON" && !dismissedWinModal}
+        onDismiss={() => {
+          setDismissedWinModal(true);
+        }}
+      />
     </div>
   );
 };
