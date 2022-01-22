@@ -1,7 +1,14 @@
+import { Check, Delete } from "@styled-icons/feather";
 import { lowerCase } from "lodash";
+import { StyledIcon } from "@styled-icons/styled-icon";
 import React, { FC, useCallback, useMemo } from "react";
 
-type RowButton = { label: string; onClick?: Function; width?: number };
+type RowButton = {
+  icon?: StyledIcon;
+  label: string;
+  onClick?: Function;
+  width?: number;
+};
 
 type Props = {
   letterHistory: LetterHistory[];
@@ -52,30 +59,31 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
         { label: "M" },
         {
           label: "Bksp",
+          icon: Delete,
           onClick: handleBackspace,
         },
-        { label: "Enter", width: 1.5, onClick: onSubmit },
+        { label: "Enter", icon: Check, width: 1.5, onClick: onSubmit },
       ],
     ],
     [handleBackspace, onSubmit]
   );
 
   return (
-    <div className="bg-white py-4 px-8 border-t flex flex-col space-y-2">
+    <div className="bg-white p-2 lg:py-4 lg:px-8 border-t flex-shrink-0 flex flex-col space-y-1 lg:space-y-2">
       {rows.map((row, index) => {
         return (
           <div
-            className="flex justify-center space-x-2"
+            className="flex justify-center space-x-1 lg:space-x-2"
             key={`keyboard-row-${index}`}
           >
             {row.map((button) => {
               const getWidthClassName = () => {
                 switch (button.width) {
                   case 1.5:
-                    return "w-32";
+                    return "w-12 md:w-24 lg:w-32";
                   case 1:
                   default:
-                    return "w-20";
+                    return "w-8 md:w-14 lg:w-20";
                 }
               };
 
@@ -85,13 +93,13 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
                     lowerCase(history.char) === lowerCase(button.label)
                 );
                 if (!history) {
-                  return "bg-slate-200 hover:bg-slate-300 text-slate-500";
+                  return "bg-slate-200 hover:bg-slate-300 active:bg-slate-300 text-slate-500";
                 }
                 switch (history.result) {
                   case "GREEN":
-                    return "bg-green-300 hover:bg-green-400 text-green-800";
+                    return "bg-green-300 hover:bg-green-400 active:bg-green-400 text-green-800";
                   case "YELLOW":
-                    return "bg-yellow-300 hover:bg-yellow-400 text-yellow-800";
+                    return "bg-yellow-300 hover:bg-yellow-400 active:bg-yellow-400 text-yellow-800";
                   case "BLACK":
                   default:
                     return "bg-slate-500 text-slate-200";
@@ -101,6 +109,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
               return (
                 <button
                   key={button.label}
+                  type="button"
                   onClick={() => {
                     if (button.onClick) {
                       button.onClick(button);
@@ -108,9 +117,16 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
                     }
                     onChange(`${text}${lowerCase(button.label)}`);
                   }}
-                  className={`${getWidthClassName()} h-20 ${getBackgroundClassName()} rounded-md text-2xl`}
+                  className={`${getWidthClassName()} h-16 md:h-20 ${getBackgroundClassName()} rounded-md text-lg md:text-2xl`}
                 >
-                  {button.label}
+                  <span className={`${button.icon ? "hidden md:inline" : ""}`}>
+                    {button.label}
+                  </span>
+                  {!!button.icon && (
+                    <span className="md:hidden">
+                      <button.icon strokeWidth={2} size={20} />
+                    </span>
+                  )}
                 </button>
               );
             })}

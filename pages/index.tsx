@@ -126,8 +126,8 @@ const Home: NextPage = () => {
       </Head>
 
       <main className="bg-slate-50 min-h-screen flex flex-col">
-        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg flex-1">
-          <div className="py-8 flex flex-col space-y-2">
+        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg flex-1 flex flex-col justify-center">
+          <div className="py-8 h-full flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (
                 <div
