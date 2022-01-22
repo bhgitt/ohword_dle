@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "@styled-icons/feather";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo } from "react";
 import { attemptToString, getWinningAttempt } from "../helpers/attempts";
 
 type Props = {
@@ -26,12 +26,26 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
     }
   }, [gameStatus]);
 
+  useEffect(() => {
+    if (visible) {
+      const escapeListener = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onDismiss();
+        }
+      };
+      window.addEventListener("keydown", escapeListener);
+      return () => {
+        window.removeEventListener("keydown", escapeListener);
+      };
+    }
+  }, [visible, onDismiss]);
+
   return (
     <AnimatePresence>
       {visible && !!content && (
         <motion.div
           key="win-modal"
-          className="fixed inset-0 bg-white bg-opacity-80 flex items-center"
+          className="fixed inset-0 bg-white bg-opacity-90 flex items-center"
           initial={{ opacity: 0 }}
           exit={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.5 } }}
