@@ -70,7 +70,10 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (e.key.match(/[a-zA-Z]/g)) {
+      if (e.metaKey) {
+        return;
+      }
+      if (e.key.match(/^[a-zA-Z]$/)) {
         onChange(`${text}${lowerCase(e.key)}`);
       }
       if (e.key === "Backspace") {

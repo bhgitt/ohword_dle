@@ -1,20 +1,32 @@
 import { lowerCase, times } from "lodash";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Head from "next/head";
-import type { NextPage } from "next";
+import type {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from "next";
 import {
   appendAttemptResult,
   attemptToString,
   generateLetterHistoryFromAttemptResult,
 } from "../helpers/attempts";
-import { hasWon } from "../helpers/game";
+import {
+  getSavedDataForCurrentWord,
+  hasWon,
+  getSavedData,
+  saveDataForCurrentWord,
+} from "../helpers/game";
 import { MAX_ATTEMPTS } from "../config";
 import Keyboard from "../components/Keyboard";
 import LetterBlock from "../components/LetterBlock";
 import WinModal from "../components/WinModal";
+import moment from "moment";
 
-const Home: NextPage = () => {
+const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
+  props
+) => {
   const [attempts, setAttempts] = useState<Attempt[]>(
     times(MAX_ATTEMPTS, () => ({
       letters: [],
@@ -24,6 +36,11 @@ const Home: NextPage = () => {
   const [dismissedWinModal, setDismissedWinModal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
+
+  const savedData = useMemo(() => {
+    const restoredSavedData = getSavedData();
+    return getSavedDataForCurrentWord(restoredSavedData, props.wordNumber);
+  }, [props.wordNumber]);
 
   const gameStatus: GameStatus = useMemo(() => {
     if (isBusy) {
@@ -95,6 +112,29 @@ const Home: NextPage = () => {
     [gameStatus, currentAttemptIndex, attempts]
   );
 
+  useEffect(() => {
+    if (savedData?.attempts) {
+      const savedAttempts = savedData.attempts;
+      setAttempts(savedAttempts);
+      const currentAttemptIndex = savedAttempts.findIndex(
+        (attempt) =>
+          attempt.letters.findIndex((letter) => !!letter.result) === -1
+      );
+      setCurrentAttemptIndex(
+        currentAttemptIndex === -1 ? MAX_ATTEMPTS + 1 : currentAttemptIndex
+      );
+    }
+  }, [savedData?.attempts]);
+
+  useEffect(() => {
+    saveDataForCurrentWord(
+      {
+        attempts,
+      },
+      props.wordNumber
+    );
+  }, [attempts, props.wordNumber]);
+
   return (
     <div>
       <Head>
@@ -147,6 +187,16 @@ const Home: NextPage = () => {
       />
     </div>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const firstWordDate = process.env.FIRST_WORD_DATE;
+  const daysPastSinceFirstWord = moment().diff(moment(firstWordDate), "days");
+  return {
+    props: {
+      wordNumber: daysPastSinceFirstWord,
+    },
+  };
 };
 
 export default Home;

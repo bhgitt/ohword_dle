@@ -8,15 +8,28 @@ type AttemptResponse = {
   letters: ResponseLetter[];
 };
 
+type ErrorResponse = { message?: string };
+
 type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
+
+type LetterHistory = { char: string; result: LetterStatus };
+
+type LetterStatus = "BLACK" | "YELLOW" | "GREEN";
 
 type ResponseLetter = {
   char: string;
   status: LetterStatus;
 };
 
-type LetterStatus = "BLACK" | "YELLOW" | "GREEN";
+type SavedData = {
+  [wordNumber: string]: SavedDataForSingleWord;
+};
 
-type ErrorResponse = { message?: string };
-
-type LetterHistory = { char: string; result: LetterStatus };
+type SavedDataForSingleWord = {
+  attempts?: Attempt[];
+  winningAttempt?: {
+    attempt: Attempt;
+    sequence: number;
+  };
+  status?: GameStatus;
+};
