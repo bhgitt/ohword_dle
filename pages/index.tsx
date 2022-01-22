@@ -1,13 +1,15 @@
-import axios from "axios";
 import { times } from "lodash";
-import type { NextPage } from "next";
+import { useCallback, useMemo, useState } from "react";
+import axios from "axios";
 import Head from "next/head";
-import { useEffect, useMemo, useState } from "react";
+import type { NextPage } from "next";
 import Keyboard from "../components/Keyboard";
 
 type Attempt = {
   chars: { letter: string; result?: "BLACK" | "YELLOW" | "GREEN" }[];
 };
+
+type GameStatus = "PLAYING" | "WON" | "LOST";
 
 const Home: NextPage = () => {
   const [attempts, setAttempts] = useState<Attempt[]>(
@@ -15,7 +17,59 @@ const Home: NextPage = () => {
       chars: [],
     }))
   );
-  const [currentAttempt, setCurrentAttempt] = useState(0);
+  const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
+
+  const gameStatus: GameStatus = useMemo(() => {
+    if (currentAttemptIndex > 6) {
+      return "LOST";
+    }
+    if (
+      attempts.find(
+        (attempt) =>
+          attempt.chars.filter(({ result }) => result === "GREEN").length === 5
+      )
+    ) {
+      return "WON";
+    }
+    return "PLAYING";
+  }, [attempts, currentAttemptIndex]);
+
+  const submitAttempt = useCallback(async () => {
+    const currentAttempt = attempts[currentAttemptIndex];
+    if (currentAttempt.chars.length < 5) {
+      return;
+    }
+    try {
+      const { data: attemptResult } = await axios.get<AttemptResponse>(
+        "/api/attempt",
+        {
+          params: {
+            word: currentAttempt.chars.reduce(
+              (agg, char) => `${agg}${char.letter}`,
+              ""
+            ),
+          },
+        }
+      );
+      setAttempts(
+        attempts.map((attempt, index) => {
+          if (index !== currentAttemptIndex) {
+            return attempt;
+          }
+          return {
+            chars: currentAttempt.chars.map((char, index) => {
+              const result = attemptResult.letters[index].status;
+              return {
+                ...char,
+                result,
+              };
+            }),
+          };
+        })
+      );
+      setCurrentAttemptIndex(currentAttemptIndex + 1);
+    } catch (error) {}
+  }, [attempts, currentAttemptIndex]);
 
   return (
     <div>
@@ -35,13 +89,35 @@ const Home: NextPage = () => {
                   key={`attempt-${index}`}
                 >
                   {times(5, (charIndex) => {
+                    const renderResultBlock = () => {
+                      if (!attempt.chars[charIndex]?.result) {
+                        return null;
+                      }
+                      const getBackgroundClassName = () => {
+                        switch (attempt.chars[charIndex].result) {
+                          case "GREEN":
+                            return "bg-green-400";
+                          case "YELLOW":
+                            return "bg-yellow-400";
+                          case "BLACK":
+                          default:
+                            return "bg-slate-100";
+                        }
+                      };
+                      return (
+                        <span
+                          className={`absolute inset-0 ${getBackgroundClassName()}`}
+                        />
+                      );
+                    };
                     return (
                       <div
-                        className="flex-1 aspect-square border-2 flex justify-center items-center"
+                        className="flex-1 aspect-square border-2 flex justify-center items-center relative"
                         key={`attempt-${index}-${charIndex}`}
                       >
+                        {renderResultBlock()}
                         {!!attempt.chars[charIndex] && (
-                          <span className="text-5xl font-bold text-slate-600">
+                          <span className="relative text-5xl font-bold text-slate-600">
                             {attempt.chars[charIndex].letter}
                           </span>
                         )}
@@ -54,17 +130,17 @@ const Home: NextPage = () => {
           </div>
         </div>
         <Keyboard
-          text={attempts[currentAttempt].chars.reduce(
+          text={attempts[currentAttemptIndex].chars.reduce(
             (text, char) => `${text}${char.letter}`,
             ""
           )}
           onChange={(newText) => {
-            if (newText.length > 5) {
+            if (newText.length > 5 || gameStatus !== "PLAYING") {
               return;
             }
             setAttempts(
               attempts.map((attempt, index) => {
-                if (index !== currentAttempt) {
+                if (index !== currentAttemptIndex) {
                   return attempt;
                 }
                 return {
@@ -75,7 +151,7 @@ const Home: NextPage = () => {
               })
             );
           }}
-          onSubmit={() => {}}
+          onSubmit={submitAttempt}
         />
       </main>
     </div>

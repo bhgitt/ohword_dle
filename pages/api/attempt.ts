@@ -1,22 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
+import { lowerCase } from "lodash";
 import fs from "fs";
 import moment from "moment";
 
-type ResponseLetter = {
-  char: string;
-  status: LetterStatus;
-};
-
-type LetterStatus = "BLACK" | "YELLOW" | "GREEN";
-
-type ErrorResponse = { message?: string };
-
-type Response =
-  | {
-      letters: ResponseLetter[];
-    }
-  | ErrorResponse;
+type Response = AttemptResponse | ErrorResponse;
 
 const getWordOfTheDay = async (): Promise<string> => {
   try {
@@ -50,10 +38,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Response>) => {
   const letters: ResponseLetter[] = [];
   word.split("").forEach((letter, index) => {
     const getLetterStatus = (): LetterStatus => {
-      if (wordOfTheDay[index] === letter) {
+      if (lowerCase(wordOfTheDay[index]) === lowerCase(letter)) {
         return "GREEN";
       }
-      if (wordOfTheDay.includes(letter)) {
+      if (lowerCase(wordOfTheDay).includes(lowerCase(letter))) {
         return "YELLOW";
       }
       return "BLACK";
