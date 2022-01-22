@@ -73,13 +73,22 @@ const Home: NextPage = () => {
       setCurrentAttemptIndex(currentAttemptIndex + 1);
       const newLetterHistory = [...letterHistory];
       attemptResult.letters.forEach((letter) => {
-        if (newLetterHistory.find((history) => history.char === letter.char)) {
+        const existingHistoryIndex = newLetterHistory.findIndex(
+          (history) => history.char === letter.char
+        );
+        if (existingHistoryIndex === -1) {
+          newLetterHistory.push({
+            char: letter.char,
+            result: letter.status,
+          });
           return;
         }
-        newLetterHistory.push({
-          char: letter.char,
-          result: letter.status,
-        });
+        if (
+          newLetterHistory[existingHistoryIndex].result === "YELLOW" &&
+          letter.status === "GREEN"
+        ) {
+          newLetterHistory[existingHistoryIndex].result = letter.status;
+        }
       });
       setLetterHistory(newLetterHistory);
     } catch (error) {
@@ -131,6 +140,7 @@ const Home: NextPage = () => {
                       <LetterBlock
                         key={`attempt-${index}-${charIndex}`}
                         letter={letter}
+                        sequence={charIndex}
                       />
                     );
                   })}
