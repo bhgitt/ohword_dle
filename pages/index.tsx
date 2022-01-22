@@ -2,10 +2,20 @@ import axios from "axios";
 import { times } from "lodash";
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Keyboard from "../components/Keyboard";
+
+type Attempt = {
+  chars: { letter: string; result?: "BLACK" | "YELLOW" | "GREEN" }[];
+};
 
 const Home: NextPage = () => {
-  const [attempts, setAttempts] = useState<String[]>(times(6, () => ""));
+  const [attempts, setAttempts] = useState<Attempt[]>(
+    times(6, () => ({
+      chars: [],
+    }))
+  );
+  const [currentAttempt, setCurrentAttempt] = useState(0);
 
   return (
     <div>
@@ -15,8 +25,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="bg-slate-50 min-h-screen">
-        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg min-h-screen">
+      <main className="bg-slate-50 min-h-screen flex flex-col">
+        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg flex-1">
           <div className="py-8 flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (
@@ -27,9 +37,15 @@ const Home: NextPage = () => {
                   {times(5, (charIndex) => {
                     return (
                       <div
-                        className="flex-1 aspect-square border-4"
+                        className="flex-1 aspect-square border-2 flex justify-center items-center"
                         key={`attempt-${index}-${charIndex}`}
-                      ></div>
+                      >
+                        {!!attempt.chars[charIndex] && (
+                          <span className="text-5xl font-bold text-slate-600">
+                            {attempt.chars[charIndex].letter}
+                          </span>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -37,6 +53,30 @@ const Home: NextPage = () => {
             })}
           </div>
         </div>
+        <Keyboard
+          text={attempts[currentAttempt].chars.reduce(
+            (text, char) => `${text}${char.letter}`,
+            ""
+          )}
+          onChange={(newText) => {
+            if (newText.length > 5) {
+              return;
+            }
+            setAttempts(
+              attempts.map((attempt, index) => {
+                if (index !== currentAttempt) {
+                  return attempt;
+                }
+                return {
+                  chars: newText
+                    .split("")
+                    .map((newTextChar) => ({ letter: newTextChar })),
+                };
+              })
+            );
+          }}
+          onSubmit={() => {}}
+        />
       </main>
     </div>
   );
