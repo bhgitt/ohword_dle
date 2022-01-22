@@ -35,6 +35,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
   const [dismissedWinModal, setDismissedWinModal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
 
   const savedData = useMemo(() => {
@@ -43,6 +44,9 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   }, [props.wordNumber]);
 
   const gameStatus: GameStatus = useMemo(() => {
+    if (!isInitialized) {
+      return "INITIALIZING";
+    }
     if (isBusy) {
       return "BUSY";
     }
@@ -53,7 +57,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       return "LOST";
     }
     return "PLAYING";
-  }, [isBusy, attempts, currentAttemptIndex]);
+  }, [isInitialized, isBusy, attempts, currentAttemptIndex]);
 
   const handleSubmitAttempt = useCallback(async () => {
     if (gameStatus !== "PLAYING") {
@@ -124,7 +128,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
         currentAttemptIndex === -1 ? MAX_ATTEMPTS + 1 : currentAttemptIndex
       );
     }
-  }, [savedData?.attempts]);
+    setTimeout(() => {
+      setIsInitialized(true);
+    }, 500);
+  }, [savedData]);
 
   useEffect(() => {
     saveDataForCurrentWord(
@@ -160,8 +167,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                     return (
                       <LetterBlock
                         key={`attempt-${index}-${charIndex}`}
+                        gameStatus={gameStatus}
                         letter={letter}
-                        sequence={charIndex}
+                        colSequence={charIndex}
+                        rowSequence={index}
                       />
                     );
                   })}

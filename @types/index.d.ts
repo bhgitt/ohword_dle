@@ -10,7 +10,7 @@ type AttemptResponse = {
 
 type ErrorResponse = { message?: string };
 
-type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
+type GameStatus = "INITIALIZING" | "PLAYING" | "WON" | "LOST" | "BUSY";
 
 type LetterHistory = { char: string; result: LetterStatus };
 

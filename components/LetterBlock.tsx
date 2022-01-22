@@ -1,12 +1,19 @@
-import { motion, useAnimation } from "framer-motion";
+import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 type Props = {
+  gameStatus: GameStatus;
   letter?: AttemptLetter;
-  sequence: number;
+  colSequence: number;
+  rowSequence: number;
 };
 
-const LetterBlock: FC<Props> = ({ letter, sequence }) => {
+const LetterBlock: FC<Props> = ({
+  gameStatus,
+  letter,
+  colSequence,
+  rowSequence,
+}) => {
   const [revealResult, setRevealResult] = useState(false);
   const animateBackground = useAnimation();
 
@@ -51,11 +58,14 @@ const LetterBlock: FC<Props> = ({ letter, sequence }) => {
 
   useEffect(() => {
     if (letter?.result) {
-      setTimeout(() => {
-        setRevealResult(true);
-      }, sequence * 500);
+      setTimeout(
+        () => {
+          setRevealResult(true);
+        },
+        gameStatus === "INITIALIZING" ? 0 : colSequence * 500
+      );
     }
-  }, [sequence, letter?.result]);
+  }, [gameStatus, colSequence, letter?.result]);
 
   useEffect(() => {
     if (revealResult) {
@@ -68,16 +78,49 @@ const LetterBlock: FC<Props> = ({ letter, sequence }) => {
   }, [revealResult, animateBackground]);
 
   return (
-    <div
-      className={`flex-1 aspect-square border-2 ${borderColor} transition-colors duration-500 flex justify-center items-center relative rounded-lg overflow-hidden`}
+    <motion.div
+      className={`flex-1 aspect-square border-2 ${borderColor} transition-colors duration-500 flex justify-center items-center relative rounded-lg overflow-hidden origin-center`}
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{
+        opacity: 1,
+        scale: [0.5, 1.1, 1],
+        transition: {
+          duration: 0.5,
+          delay: (colSequence + rowSequence) * 0.05,
+          ease: "easeOut",
+          times: [0, 0.3, 1],
+        },
+      }}
     >
       {renderBackground()}
-      {!!letter && (
-        <span className="relative text-5xl font-bold text-slate-600 uppercase">
-          {letter.char}
-        </span>
-      )}
-    </div>
+      <AnimatePresence>
+        {!!letter && (
+          <motion.span
+            className="relative text-5xl font-bold text-slate-600 uppercase"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{
+              opacity: 1,
+              scale: [0.5, 1.1, 1],
+              transition: {
+                duration: 0.1,
+                ease: "easeInOut",
+                times: [0, 0.3, 1],
+              },
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.5,
+              transition: {
+                duration: 0.1,
+                ease: "easeInOut",
+              },
+            }}
+          >
+            {letter.char}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
