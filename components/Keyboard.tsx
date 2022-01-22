@@ -1,14 +1,16 @@
+import { lowerCase } from "lodash";
 import React, { FC, useMemo } from "react";
 
 type RowButton = { label: string; onClick?: Function; width?: number };
 
 type Props = {
-  text: string;
+  letterHistory: LetterHistory[];
   onChange: (newText: string) => any;
   onSubmit: () => any;
+  text: string;
 };
 
-const Keyboard: FC<Props> = ({ text, onChange, onSubmit }) => {
+const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
   const rows: RowButton[][] = useMemo(
     () => [
       [
@@ -75,6 +77,25 @@ const Keyboard: FC<Props> = ({ text, onChange, onSubmit }) => {
                 }
               };
 
+              const getBackgroundClassName = () => {
+                const history = letterHistory.find(
+                  (history) =>
+                    lowerCase(history.char) === lowerCase(button.label)
+                );
+                if (!history) {
+                  return "bg-slate-200 hover:bg-slate-300 text-slate-500";
+                }
+                switch (history.result) {
+                  case "GREEN":
+                    return "bg-green-300 hover:bg-green-400 text-green-800";
+                  case "YELLOW":
+                    return "bg-yellow-300 hover:bg-yellow-400 text-yellow-800";
+                  case "BLACK":
+                  default:
+                    return "bg-slate-500 text-slate-200";
+                }
+              };
+
               return (
                 <button
                   key={button.label}
@@ -85,7 +106,7 @@ const Keyboard: FC<Props> = ({ text, onChange, onSubmit }) => {
                     }
                     onChange(`${text}${button.label}`);
                   }}
-                  className={`${getWidthClassName()} h-20 bg-slate-200 hover:bg-slate-300 text-slate-500 rounded-md text-2xl`}
+                  className={`${getWidthClassName()} h-20 ${getBackgroundClassName()} rounded-md text-2xl`}
                 >
                   {button.label}
                 </button>

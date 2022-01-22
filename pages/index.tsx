@@ -6,7 +6,7 @@ import type { NextPage } from "next";
 import Keyboard from "../components/Keyboard";
 
 type Attempt = {
-  chars: { letter: string; result?: "BLACK" | "YELLOW" | "GREEN" }[];
+  letters: { char: string; result?: LetterStatus }[];
 };
 
 type GameStatus = "PLAYING" | "WON" | "LOST";
@@ -14,10 +14,11 @@ type GameStatus = "PLAYING" | "WON" | "LOST";
 const Home: NextPage = () => {
   const [attempts, setAttempts] = useState<Attempt[]>(
     times(6, () => ({
-      chars: [],
+      letters: [],
     }))
   );
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
+  const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
 
   const gameStatus: GameStatus = useMemo(() => {
     if (currentAttemptIndex > 6) {
@@ -26,7 +27,8 @@ const Home: NextPage = () => {
     if (
       attempts.find(
         (attempt) =>
-          attempt.chars.filter(({ result }) => result === "GREEN").length === 5
+          attempt.letters.filter(({ result }) => result === "GREEN").length ===
+          5
       )
     ) {
       return "WON";
@@ -36,16 +38,16 @@ const Home: NextPage = () => {
 
   const submitAttempt = useCallback(async () => {
     const currentAttempt = attempts[currentAttemptIndex];
-    if (currentAttempt.chars.length < 5) {
-      return;
-    }
     try {
+      if (currentAttempt.letters.length < 5) {
+        throw new Error("incorrect-word-length");
+      }
       const { data: attemptResult } = await axios.get<AttemptResponse>(
         "/api/attempt",
         {
           params: {
-            word: currentAttempt.chars.reduce(
-              (agg, char) => `${agg}${char.letter}`,
+            word: currentAttempt.letters.reduce(
+              (agg, char) => `${agg}${char.char}`,
               ""
             ),
           },
@@ -57,7 +59,7 @@ const Home: NextPage = () => {
             return attempt;
           }
           return {
-            chars: currentAttempt.chars.map((char, index) => {
+            letters: currentAttempt.letters.map((char, index) => {
               const result = attemptResult.letters[index].status;
               return {
                 ...char,
@@ -68,8 +70,21 @@ const Home: NextPage = () => {
         })
       );
       setCurrentAttemptIndex(currentAttemptIndex + 1);
-    } catch (error) {}
-  }, [attempts, currentAttemptIndex]);
+      const newLetterHistory = [...letterHistory];
+      attemptResult.letters.forEach((letter) => {
+        if (newLetterHistory.find((history) => history.char === letter.char)) {
+          return;
+        }
+        newLetterHistory.push({
+          char: letter.char,
+          result: letter.status,
+        });
+      });
+      setLetterHistory(newLetterHistory);
+    } catch (error) {
+      alert(error);
+    }
+  }, [attempts, currentAttemptIndex, letterHistory]);
 
   return (
     <div>
@@ -90,11 +105,11 @@ const Home: NextPage = () => {
                 >
                   {times(5, (charIndex) => {
                     const renderResultBlock = () => {
-                      if (!attempt.chars[charIndex]?.result) {
+                      if (!attempt.letters[charIndex]?.result) {
                         return null;
                       }
                       const getBackgroundClassName = () => {
-                        switch (attempt.chars[charIndex].result) {
+                        switch (attempt.letters[charIndex].result) {
                           case "GREEN":
                             return "bg-green-400";
                           case "YELLOW":
@@ -110,15 +125,31 @@ const Home: NextPage = () => {
                         />
                       );
                     };
+
+                    const getBorderColor = () => {
+                      if (!attempt.letters[charIndex]?.result) {
+                        return "";
+                      }
+                      switch (attempt.letters[charIndex].result) {
+                        case "GREEN":
+                          return "border-green-500";
+                        case "YELLOW":
+                          return "border-yellow-500";
+                        case "BLACK":
+                        default:
+                          return "border-slate-200";
+                      }
+                    };
+
                     return (
                       <div
-                        className="flex-1 aspect-square border-2 flex justify-center items-center relative"
+                        className={`flex-1 aspect-square border-2 ${getBorderColor()} flex justify-center items-center relative rounded-lg overflow-hidden`}
                         key={`attempt-${index}-${charIndex}`}
                       >
                         {renderResultBlock()}
-                        {!!attempt.chars[charIndex] && (
+                        {!!attempt.letters[charIndex] && (
                           <span className="relative text-5xl font-bold text-slate-600">
-                            {attempt.chars[charIndex].letter}
+                            {attempt.letters[charIndex].char}
                           </span>
                         )}
                       </div>
@@ -130,10 +161,11 @@ const Home: NextPage = () => {
           </div>
         </div>
         <Keyboard
-          text={attempts[currentAttemptIndex].chars.reduce(
-            (text, char) => `${text}${char.letter}`,
+          text={attempts[currentAttemptIndex].letters.reduce(
+            (text, char) => `${text}${char.char}`,
             ""
           )}
+          letterHistory={letterHistory}
           onChange={(newText) => {
             if (newText.length > 5 || gameStatus !== "PLAYING") {
               return;
@@ -144,9 +176,9 @@ const Home: NextPage = () => {
                   return attempt;
                 }
                 return {
-                  chars: newText
+                  letters: newText
                     .split("")
-                    .map((newTextChar) => ({ letter: newTextChar })),
+                    .map((newTextChar) => ({ char: newTextChar })),
                 };
               })
             );

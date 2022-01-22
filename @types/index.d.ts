@@ -10,3 +10,5 @@ type ResponseLetter = {
 type LetterStatus = "BLACK" | "YELLOW" | "GREEN";
 
 type ErrorResponse = { message?: string };
+
+type LetterHistory = { char: string; result: LetterStatus };
