@@ -1,12 +1,13 @@
-import { times } from "lodash";
+import { lowerCase, times } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import axios from "axios";
 import Head from "next/head";
 import type { NextPage } from "next";
 import Keyboard from "../components/Keyboard";
+import LetterBlock from "../components/LetterBlock";
 
 type Attempt = {
-  letters: { char: string; result?: LetterStatus }[];
+  letters: AttemptLetter[];
 };
 
 type GameStatus = "PLAYING" | "WON" | "LOST";
@@ -36,7 +37,7 @@ const Home: NextPage = () => {
     return "PLAYING";
   }, [attempts, currentAttemptIndex]);
 
-  const submitAttempt = useCallback(async () => {
+  const handleSubmitAttempt = useCallback(async () => {
     const currentAttempt = attempts[currentAttemptIndex];
     try {
       if (currentAttempt.letters.length < 5) {
@@ -86,6 +87,27 @@ const Home: NextPage = () => {
     }
   }, [attempts, currentAttemptIndex, letterHistory]);
 
+  const handleKeyboardChange = useCallback(
+    (newText: string) => {
+      if (newText.length > 5 || gameStatus !== "PLAYING") {
+        return;
+      }
+      setAttempts(
+        attempts.map((attempt, index) => {
+          if (index !== currentAttemptIndex) {
+            return attempt;
+          }
+          return {
+            letters: newText
+              .split("")
+              .map((newTextChar) => ({ char: lowerCase(newTextChar) })),
+          };
+        })
+      );
+    },
+    [gameStatus, currentAttemptIndex, attempts]
+  );
+
   return (
     <div>
       <Head>
@@ -104,55 +126,12 @@ const Home: NextPage = () => {
                   key={`attempt-${index}`}
                 >
                   {times(5, (charIndex) => {
-                    const renderResultBlock = () => {
-                      if (!attempt.letters[charIndex]?.result) {
-                        return null;
-                      }
-                      const getBackgroundClassName = () => {
-                        switch (attempt.letters[charIndex].result) {
-                          case "GREEN":
-                            return "bg-green-400";
-                          case "YELLOW":
-                            return "bg-yellow-400";
-                          case "BLACK":
-                          default:
-                            return "bg-slate-100";
-                        }
-                      };
-                      return (
-                        <span
-                          className={`absolute inset-0 ${getBackgroundClassName()}`}
-                        />
-                      );
-                    };
-
-                    const getBorderColor = () => {
-                      if (!attempt.letters[charIndex]?.result) {
-                        return "";
-                      }
-                      switch (attempt.letters[charIndex].result) {
-                        case "GREEN":
-                          return "border-green-500";
-                        case "YELLOW":
-                          return "border-yellow-500";
-                        case "BLACK":
-                        default:
-                          return "border-slate-200";
-                      }
-                    };
-
+                    const letter = attempt.letters[charIndex];
                     return (
-                      <div
-                        className={`flex-1 aspect-square border-2 ${getBorderColor()} flex justify-center items-center relative rounded-lg overflow-hidden`}
+                      <LetterBlock
                         key={`attempt-${index}-${charIndex}`}
-                      >
-                        {renderResultBlock()}
-                        {!!attempt.letters[charIndex] && (
-                          <span className="relative text-5xl font-bold text-slate-600">
-                            {attempt.letters[charIndex].char}
-                          </span>
-                        )}
-                      </div>
+                        letter={letter}
+                      />
                     );
                   })}
                 </div>
@@ -162,28 +141,12 @@ const Home: NextPage = () => {
         </div>
         <Keyboard
           text={attempts[currentAttemptIndex].letters.reduce(
-            (text, char) => `${text}${char.char}`,
+            (text, letter) => `${text}${letter.char}`,
             ""
           )}
           letterHistory={letterHistory}
-          onChange={(newText) => {
-            if (newText.length > 5 || gameStatus !== "PLAYING") {
-              return;
-            }
-            setAttempts(
-              attempts.map((attempt, index) => {
-                if (index !== currentAttemptIndex) {
-                  return attempt;
-                }
-                return {
-                  letters: newText
-                    .split("")
-                    .map((newTextChar) => ({ char: newTextChar })),
-                };
-              })
-            );
-          }}
-          onSubmit={submitAttempt}
+          onChange={handleKeyboardChange}
+          onSubmit={handleSubmitAttempt}
         />
       </main>
     </div>

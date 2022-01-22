@@ -1,5 +1,5 @@
 import { lowerCase } from "lodash";
-import React, { FC, useMemo } from "react";
+import React, { FC, useCallback, useMemo } from "react";
 
 type RowButton = { label: string; onClick?: Function; width?: number };
 
@@ -11,6 +11,12 @@ type Props = {
 };
 
 const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
+  const handleBackspace = useCallback(() => {
+    if (text.length > 0) {
+      onChange(text.slice(0, text.length - 1));
+    }
+  }, [text, onChange]);
+
   const rows: RowButton[][] = useMemo(
     () => [
       [
@@ -46,16 +52,12 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
         { label: "M" },
         {
           label: "Bksp",
-          onClick: () => {
-            if (text.length > 0) {
-              onChange(text.slice(0, text.length - 1));
-            }
-          },
+          onClick: handleBackspace,
         },
         { label: "Enter", width: 1.5, onClick: onSubmit },
       ],
     ],
-    [text, onChange, onSubmit]
+    [handleBackspace, onSubmit]
   );
 
   return (
@@ -104,7 +106,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
                       button.onClick(button);
                       return;
                     }
-                    onChange(`${text}${button.label}`);
+                    onChange(`${text}${lowerCase(button.label)}`);
                   }}
                   className={`${getWidthClassName()} h-20 ${getBackgroundClassName()} rounded-md text-2xl`}
                 >
