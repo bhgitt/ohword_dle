@@ -1,7 +1,7 @@
 import { Check, Delete } from "@styled-icons/feather";
 import { lowerCase } from "lodash";
 import { StyledIcon } from "@styled-icons/styled-icon";
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo } from "react";
 
 type RowButton = {
   icon?: StyledIcon;
@@ -67,6 +67,24 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
     ],
     [handleBackspace, onSubmit]
   );
+
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (e.key.match(/[a-zA-Z]/g)) {
+        onChange(`${text}${lowerCase(e.key)}`);
+      }
+      if (e.key === "Backspace") {
+        handleBackspace();
+      }
+      if (e.key === "Enter") {
+        onSubmit();
+      }
+    };
+    window.addEventListener("keydown", listener);
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
+  }, [onChange, text, handleBackspace, onSubmit]);
 
   return (
     <div className="bg-white p-2 lg:py-4 lg:px-8 border-t flex-shrink-0 flex flex-col space-y-1 lg:space-y-2">
