@@ -1,19 +1,34 @@
-import { X } from "@styled-icons/feather";
 import { AnimatePresence, motion } from "framer-motion";
-import { last } from "lodash";
-import React, { FC } from "react";
+import { X } from "@styled-icons/feather";
+import React, { FC, useMemo } from "react";
 import { attemptToString, getWinningAttempt } from "../helpers/attempts";
 
 type Props = {
   attempts: Attempt[];
   onDismiss: () => any;
+  gameStatus: GameStatus;
   visible: boolean;
 };
 
-const WinModal: FC<Props> = ({ attempts, onDismiss, visible }) => {
+const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
+  const content = useMemo(() => {
+    switch (gameStatus) {
+      case "WON":
+        return {
+          title: "Nice One!",
+        };
+      case "LOST":
+        return {
+          title: "Aw, dang!",
+        };
+      default:
+        return null;
+    }
+  }, [gameStatus]);
+
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && !!content && (
         <motion.div
           key="win-modal"
           className="fixed inset-0 bg-white bg-opacity-80 flex items-center"
@@ -30,13 +45,20 @@ const WinModal: FC<Props> = ({ attempts, onDismiss, visible }) => {
           </button>
 
           <div className="container px-4 mx-auto">
-            <h2 className="text-6xl text-center font-bold mb-2">Nice One!</h2>
-            <p className="text-xl text-center mb-12">
-              Word of the day:{" "}
-              <span className="uppercase font-bold">
-                {attemptToString(getWinningAttempt(attempts))}
-              </span>
-            </p>
+            <div className="mb-12">
+              <h2 className="text-6xl text-center font-bold mb-2">
+                {content?.title}
+              </h2>
+
+              {gameStatus === "WON" && (
+                <p className="text-xl text-center">
+                  Word of the day:{" "}
+                  <span className="uppercase font-bold">
+                    {attemptToString(getWinningAttempt(attempts))}
+                  </span>
+                </p>
+              )}
+            </div>
             <p className="text-center">
               Thank you for playing Endy&apos;s Wordle today!
               <br />

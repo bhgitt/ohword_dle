@@ -3,21 +3,20 @@ import { useCallback, useMemo, useState } from "react";
 import axios from "axios";
 import Head from "next/head";
 import type { NextPage } from "next";
-import Keyboard from "../components/Keyboard";
-import LetterBlock from "../components/LetterBlock";
 import {
   appendAttemptResult,
   attemptToString,
   generateLetterHistoryFromAttemptResult,
 } from "../helpers/attempts";
 import { hasWon } from "../helpers/game";
+import { MAX_ATTEMPTS } from "../config";
+import Keyboard from "../components/Keyboard";
+import LetterBlock from "../components/LetterBlock";
 import WinModal from "../components/WinModal";
-
-type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
 
 const Home: NextPage = () => {
   const [attempts, setAttempts] = useState<Attempt[]>(
-    times(6, () => ({
+    times(MAX_ATTEMPTS, () => ({
       letters: [],
     }))
   );
@@ -30,11 +29,11 @@ const Home: NextPage = () => {
     if (isBusy) {
       return "BUSY";
     }
-    if (currentAttemptIndex > 6) {
-      return "LOST";
-    }
     if (hasWon(attempts)) {
       return "WON";
+    }
+    if (currentAttemptIndex + 1 > MAX_ATTEMPTS) {
+      return "LOST";
     }
     return "PLAYING";
   }, [isBusy, attempts, currentAttemptIndex]);
@@ -132,10 +131,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <Keyboard
-          text={attempts[currentAttemptIndex].letters.reduce(
-            (text, letter) => `${text}${letter.char}`,
-            ""
-          )}
+          text={attemptToString(attempts[currentAttemptIndex])}
           letterHistory={letterHistory}
           onChange={handleKeyboardChange}
           onSubmit={handleSubmitAttempt}
@@ -143,7 +139,8 @@ const Home: NextPage = () => {
       </main>
       <WinModal
         attempts={attempts}
-        visible={gameStatus === "WON" && !dismissedWinModal}
+        gameStatus={gameStatus}
+        visible={["WON", "LOST"].includes(gameStatus) && !dismissedWinModal}
         onDismiss={() => {
           setDismissedWinModal(true);
         }}

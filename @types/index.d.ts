@@ -8,6 +8,8 @@ type AttemptResponse = {
   letters: ResponseLetter[];
 };
 
+type GameStatus = "PLAYING" | "WON" | "LOST" | "BUSY";
+
 type ResponseLetter = {
   char: string;
   status: LetterStatus;
