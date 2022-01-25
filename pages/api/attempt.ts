@@ -1,18 +1,13 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import { lowerCase } from "lodash";
-import fs from "fs";
 import moment from "moment";
+import wordsList from "../../data/words.json";
 
 type Response = AttemptResponse | ErrorResponse;
 
 const getWordOfTheDay = async (): Promise<string> => {
   try {
-    const wordsListFileContents = fs.readFileSync(
-      process.cwd() + "/data/words.json",
-      "utf-8"
-    );
-    const wordsList = JSON.parse(wordsListFileContents);
     const firstWordDate = process.env.FIRST_WORD_DATE;
     const daysPastSinceFirstWord = moment().diff(moment(firstWordDate), "days");
     if (!wordsList[daysPastSinceFirstWord]) {
