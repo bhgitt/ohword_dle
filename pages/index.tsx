@@ -183,6 +183,11 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
           name="description"
           content="Daily word-guessing game remake by Endy, inspired by the original Wordle game."
         />
+        <meta
+          name="image"
+          property="og:image"
+          content="https://wordle.endyhardy.me/cover.png"
+        />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="ndyhrdy" />
         <meta name="twitter:title" content="Endy's Wordle" />
