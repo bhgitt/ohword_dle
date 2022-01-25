@@ -10,7 +10,7 @@ export const appendAttemptResult = (
     }
     return {
       letters: currentAttempt.letters.map((char, index) => {
-        const result = attemptResult.letters[index].status;
+        const result = attemptResult.letters[index].result;
         return {
           ...char,
           result,
@@ -18,6 +18,33 @@ export const appendAttemptResult = (
       }),
     };
   });
+};
+
+export const appendLetterHistory = (
+  letterHistory: LetterHistory[],
+  attemptLetter: AttemptLetter
+) => {
+  if (!attemptLetter.result) {
+    return letterHistory;
+  }
+  const existingHistoryIndex = letterHistory.findIndex(
+    (history) => history.char === attemptLetter.char
+  );
+  if (existingHistoryIndex === -1) {
+    letterHistory.push({
+      char: attemptLetter.char,
+      result: attemptLetter.result,
+    });
+    return letterHistory;
+  }
+  const newLetterHistory: LetterHistory[] = [...letterHistory];
+  if (
+    newLetterHistory[existingHistoryIndex].result === "YELLOW" &&
+    attemptLetter.result === "GREEN"
+  ) {
+    newLetterHistory[existingHistoryIndex].result = attemptLetter.result;
+  }
+  return newLetterHistory;
 };
 
 export const attemptToString = (attempt?: Attempt | null): string => {
@@ -29,35 +56,40 @@ export const attemptToString = (attempt?: Attempt | null): string => {
 
 export const generateLetterHistoryFromAttemptResult = (
   currentHistory: LetterHistory[],
-  results: ResponseLetter[]
+  results: AttemptLetter[]
 ): LetterHistory[] => {
-  const newLetterHistory = [...currentHistory];
+  let newLetterHistory = [...currentHistory];
   results.forEach((letter) => {
-    const existingHistoryIndex = newLetterHistory.findIndex(
-      (history) => history.char === letter.char
-    );
-    if (existingHistoryIndex === -1) {
-      newLetterHistory.push({
-        char: letter.char,
-        result: letter.status,
-      });
-      return;
-    }
-    if (
-      newLetterHistory[existingHistoryIndex].result === "YELLOW" &&
-      letter.status === "GREEN"
-    ) {
-      newLetterHistory[existingHistoryIndex].result = letter.status;
-    }
+    newLetterHistory = appendLetterHistory(newLetterHistory, letter);
   });
   return newLetterHistory;
 };
 
-export const getWinningAttempt = (attempts: Attempt[]): Attempt | null => {
-  return (
-    attempts.find(
-      (attempt) =>
-        attempt.letters.filter(({ result }) => result === "GREEN").length === 5
-    ) || null
+export const generateLetterHistoryFromAttempts = (
+  attempts: Attempt[]
+): LetterHistory[] => {
+  const attemptLetters = attempts.reduce<AttemptLetter[]>((agg, attempt) => {
+    return [...agg, ...attempt.letters];
+  }, []);
+  let letterHistory: LetterHistory[] = [];
+  attemptLetters.forEach((letter) => {
+    letterHistory = appendLetterHistory(letterHistory, letter);
+  });
+  return letterHistory;
+};
+
+export const getWinningAttempt = (
+  attempts: Attempt[]
+): { attempt: Attempt; sequence: number } | null => {
+  const winningAttemptIndex = attempts.findIndex(
+    (attempt) =>
+      attempt.letters.filter(({ result }) => result === "GREEN").length === 5
   );
+  if (winningAttemptIndex === -1) {
+    return null;
+  }
+  return {
+    attempt: attempts[winningAttemptIndex],
+    sequence: winningAttemptIndex,
+  };
 };

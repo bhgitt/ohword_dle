@@ -40,6 +40,8 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
     }
   }, [visible, onDismiss]);
 
+  const winningAttempt = getWinningAttempt(attempts);
+
   return (
     <AnimatePresence>
       {visible && !!content && (
@@ -64,11 +66,11 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
                 {content?.title}
               </h2>
 
-              {gameStatus === "WON" && (
+              {!!winningAttempt && (
                 <p className="text-xl text-center">
                   Word of the day:{" "}
                   <span className="uppercase font-bold">
-                    {attemptToString(getWinningAttempt(attempts))}
+                    {attemptToString(winningAttempt.attempt)}
                   </span>
                 </p>
               )}

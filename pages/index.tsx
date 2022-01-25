@@ -11,6 +11,8 @@ import {
   appendAttemptResult,
   attemptToString,
   generateLetterHistoryFromAttemptResult,
+  generateLetterHistoryFromAttempts,
+  getWinningAttempt,
 } from "../helpers/attempts";
 import {
   getSavedDataForCurrentWord,
@@ -27,6 +29,7 @@ import moment from "moment";
 const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   props
 ) => {
+  const [appHeight, setAppHeight] = useState(0);
   const [attempts, setAttempts] = useState<Attempt[]>(
     times(MAX_ATTEMPTS, () => ({
       letters: [],
@@ -58,6 +61,12 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
     }
     return "PLAYING";
   }, [isInitialized, isBusy, attempts, currentAttemptIndex]);
+
+  const winningAttempt = useMemo(() => {
+    if (gameStatus === "WON") {
+      return getWinningAttempt(attempts);
+    }
+  }, [gameStatus, attempts]);
 
   const handleSubmitAttempt = useCallback(async () => {
     if (gameStatus !== "PLAYING") {
@@ -117,6 +126,17 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   );
 
   useEffect(() => {
+    const windowResizeListener = () => {
+      setAppHeight(window.innerHeight);
+    };
+    window.addEventListener("resize", windowResizeListener);
+    windowResizeListener();
+    return () => {
+      window.removeEventListener("resize", windowResizeListener);
+    };
+  }, []);
+
+  useEffect(() => {
     if (savedData?.attempts) {
       const savedAttempts = savedData.attempts;
       setAttempts(savedAttempts);
@@ -127,6 +147,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       setCurrentAttemptIndex(
         currentAttemptIndex === -1 ? MAX_ATTEMPTS + 1 : currentAttemptIndex
       );
+      setLetterHistory(generateLetterHistoryFromAttempts(savedAttempts));
     }
     setTimeout(() => {
       setIsInitialized(true);
@@ -142,6 +163,18 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
     );
   }, [attempts, props.wordNumber]);
 
+  useEffect(() => {
+    if (["WON", "LOST"].includes(gameStatus)) {
+      saveDataForCurrentWord({ status: gameStatus }, props.wordNumber);
+    }
+  }, [gameStatus, props.wordNumber]);
+
+  useEffect(() => {
+    if (winningAttempt) {
+      saveDataForCurrentWord({ winningAttempt }, props.wordNumber);
+    }
+  }, [winningAttempt, props.wordNumber]);
+
   return (
     <div>
       <Head>
@@ -153,9 +186,12 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="bg-slate-50 min-h-screen flex flex-col">
+      <main
+        className="bg-slate-50 flex flex-col overflow-hidden"
+        style={{ height: appHeight }}
+      >
         <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg flex-1 flex flex-col justify-center">
-          <div className="py-8 h-full flex flex-col space-y-2">
+          <div className="py-4 lg:py-8 flex-initial flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (
                 <div

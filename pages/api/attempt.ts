@@ -35,9 +35,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Response>) => {
     return;
   }
   const wordOfTheDay = await getWordOfTheDay();
-  const letters: ResponseLetter[] = [];
+  const letters: AttemptLetter[] = [];
   word.split("").forEach((letter, index) => {
-    const getLetterStatus = (): LetterStatus => {
+    const getLetterResult = (): LetterResult => {
       if (lowerCase(wordOfTheDay[index]) === lowerCase(letter)) {
         return "GREEN";
       }
@@ -46,10 +46,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Response>) => {
       }
       return "BLACK";
     };
-    const status: LetterStatus = getLetterStatus();
+    const result: LetterResult = getLetterResult();
     letters.push({
       char: letter,
-      status,
+      result,
     });
   });
   res.status(200).json({ letters });

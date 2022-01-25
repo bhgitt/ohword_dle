@@ -90,7 +90,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
   }, [onChange, text, handleBackspace, onSubmit]);
 
   return (
-    <div className="bg-white p-2 lg:py-4 lg:px-8 border-t flex-shrink-0 flex flex-col space-y-1 lg:space-y-2">
+    <div className="bg-white p-2 lg:py-4 lg:px-8 border-t flex-none flex flex-col space-y-1 lg:space-y-2">
       {rows.map((row, index) => {
         return (
           <div
@@ -138,7 +138,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
                     }
                     onChange(`${text}${lowerCase(button.label)}`);
                   }}
-                  className={`${getWidthClassName()} h-16 md:h-20 ${getBackgroundClassName()} rounded-md text-lg md:text-2xl`}
+                  className={`${getWidthClassName()} h-12 sm:h-16 md:h-20 ${getBackgroundClassName()} rounded-md text-lg md:text-2xl`}
                 >
                   <span className={`${button.icon ? "hidden md:inline" : ""}`}>
                     {button.label}

@@ -34,8 +34,8 @@ const LetterBlock: FC<Props> = ({
     };
     return (
       <motion.span
-        className={`absolute left-0 top-0 rounded-md ${getBackgroundClassName()}`}
-        initial={{ width: 0, height: 0 }}
+        className={`absolute inset-0 ${getBackgroundClassName()}`}
+        initial={{ scale: 0, borderRadius: "100%" }}
         animate={animateBackground}
       />
     );
@@ -70,8 +70,8 @@ const LetterBlock: FC<Props> = ({
   useEffect(() => {
     if (revealResult) {
       animateBackground.start({
-        width: "100%",
-        height: "100%",
+        scale: 1,
+        borderRadius: 0,
         transition: { duration: 0.5 },
       });
     }

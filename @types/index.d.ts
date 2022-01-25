@@ -2,24 +2,19 @@ type Attempt = {
   letters: AttemptLetter[];
 };
 
-type AttemptLetter = { char: string; result?: LetterStatus };
+type AttemptLetter = { char: string; result?: LetterResult };
 
 type AttemptResponse = {
-  letters: ResponseLetter[];
+  letters: AttemptLetter[];
 };
 
 type ErrorResponse = { message?: string };
 
 type GameStatus = "INITIALIZING" | "PLAYING" | "WON" | "LOST" | "BUSY";
 
-type LetterHistory = { char: string; result: LetterStatus };
+type LetterHistory = { char: string; result: LetterResult };
 
-type LetterStatus = "BLACK" | "YELLOW" | "GREEN";
-
-type ResponseLetter = {
-  char: string;
-  status: LetterStatus;
-};
+type LetterResult = "BLACK" | "YELLOW" | "GREEN";
 
 type SavedData = {
   [wordNumber: string]: SavedDataForSingleWord;

@@ -37,7 +37,7 @@ export const saveDataForCurrentWord = (
 ): SavedData => {
   try {
     const savedData = getSavedData();
-    savedData[wordNumber] = saveData;
+    savedData[wordNumber] = { ...(savedData[wordNumber] || {}), ...saveData };
     window.localStorage.setItem(
       `${LOCALSTORAGE_KEY}.savedata`,
       JSON.stringify(savedData)
