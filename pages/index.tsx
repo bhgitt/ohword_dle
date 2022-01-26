@@ -1,12 +1,13 @@
 import { lowerCase, times } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import Head from "next/head";
 import type {
   GetServerSideProps,
   InferGetServerSidePropsType,
   NextPage,
 } from "next";
+import axios from "axios";
+import Head from "next/head";
+import moment from "moment";
 import {
   appendAttemptResult,
   attemptToString,
@@ -21,10 +22,9 @@ import {
   saveDataForCurrentWord,
 } from "../helpers/game";
 import { MAX_ATTEMPTS } from "../config";
+import AttemptRow from "../components/AttemptRow";
 import Keyboard from "../components/Keyboard";
-import LetterBlock from "../components/LetterBlock";
 import WinModal from "../components/WinModal";
-import moment from "moment";
 
 const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   props
@@ -35,6 +35,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       letters: [],
     }))
   );
+  const [attemptError, setAttemptError] = useState<any>(null);
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
   const [dismissedWinModal, setDismissedWinModal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
@@ -69,6 +70,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   }, [gameStatus, attempts]);
 
   const handleSubmitAttempt = useCallback(async () => {
+    setAttemptError(null);
     if (gameStatus !== "PLAYING") {
       return;
     }
@@ -100,7 +102,8 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
         setIsBusy(false);
       }, 5 * 500);
     } catch (error) {
-      alert(error);
+      setAttemptError(error);
+      setIsBusy(false);
     }
   }, [attempts, currentAttemptIndex, gameStatus, letterHistory]);
 
@@ -210,23 +213,13 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
           <div className="py-4 lg:py-8 flex-initial flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (
-                <div
-                  className="flex space-x-2 justify-center"
+                <AttemptRow
                   key={`attempt-${index}`}
-                >
-                  {times(5, (charIndex) => {
-                    const letter = attempt.letters[charIndex];
-                    return (
-                      <LetterBlock
-                        key={`attempt-${index}-${charIndex}`}
-                        gameStatus={gameStatus}
-                        letter={letter}
-                        colSequence={charIndex}
-                        rowSequence={index}
-                      />
-                    );
-                  })}
-                </div>
+                  {...attempt}
+                  error={index === currentAttemptIndex ? attemptError : null}
+                  index={index}
+                  gameStatus={gameStatus}
+                />
               );
             })}
           </div>
