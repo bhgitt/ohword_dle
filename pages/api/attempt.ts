@@ -25,7 +25,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Response>) => {
     return;
   }
   const { word } = req.query;
-  if (typeof word !== "string" || word.length !== 5) {
+  if (
+    typeof word !== "string" ||
+    word.length !== 5 ||
+    !wordsList.includes(word)
+  ) {
     res.status(422).json({ message: "Submitted word is invalid" });
     return;
   }

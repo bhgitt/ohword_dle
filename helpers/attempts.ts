@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const appendAttemptResult = (
   attempts: Attempt[],
   currentAttemptIndex: number,
@@ -92,4 +94,11 @@ export const getWinningAttempt = (
     attempt: attempts[winningAttemptIndex],
     sequence: winningAttemptIndex,
   };
+};
+
+export const validateAttempt = (attempt: Attempt): void => {
+  const word = attemptToString(attempt);
+  if (word.length !== 5) {
+    throw new Error("invalid-word-length");
+  }
 };

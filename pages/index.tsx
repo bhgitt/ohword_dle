@@ -14,6 +14,7 @@ import {
   generateLetterHistoryFromAttemptResult,
   generateLetterHistoryFromAttempts,
   getWinningAttempt,
+  validateAttempt,
 } from "../helpers/attempts";
 import {
   getSavedDataForCurrentWord,
@@ -77,9 +78,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
     setIsBusy(true);
     const currentAttempt = attempts[currentAttemptIndex];
     try {
-      if (currentAttempt.letters.length < 5) {
-        throw new Error("incorrect-word-length");
-      }
+      await validateAttempt(currentAttempt);
       const { data: attemptResult } = await axios.get<AttemptResponse>(
         "/api/attempt",
         {
@@ -218,6 +217,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                   {...attempt}
                   error={index === currentAttemptIndex ? attemptError : null}
                   index={index}
+                  isBusy={index === currentAttemptIndex ? isBusy : false}
                   gameStatus={gameStatus}
                 />
               );
