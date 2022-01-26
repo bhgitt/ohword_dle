@@ -217,7 +217,6 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
                   {...attempt}
                   error={index === currentAttemptIndex ? attemptError : null}
                   index={index}
-                  isBusy={index === currentAttemptIndex ? isBusy : false}
                   gameStatus={gameStatus}
                 />
               );

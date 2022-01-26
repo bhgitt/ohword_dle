@@ -7,16 +7,9 @@ type Props = Attempt & {
   error?: any;
   gameStatus: GameStatus;
   index: number;
-  isBusy?: boolean;
 };
 
-const AttemptRow: FC<Props> = ({
-  error,
-  gameStatus,
-  index,
-  isBusy,
-  letters,
-}) => {
+const AttemptRow: FC<Props> = ({ error, gameStatus, index, letters }) => {
   const animateRow = useAnimation();
 
   useEffect(() => {
@@ -30,9 +23,7 @@ const AttemptRow: FC<Props> = ({
 
   return (
     <motion.div
-      className={`flex space-x-2 justify-center transition-opacity ${
-        isBusy ? "opacity-75" : ""
-      }`}
+      className="flex space-x-2 justify-center transition-opacity"
       animate={animateRow}
     >
       {times(5, (charIndex) => {
