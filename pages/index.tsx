@@ -21,6 +21,7 @@ import {
   hasWon,
   getSavedData,
   saveDataForCurrentWord,
+  prunePastGamesData,
 } from "../helpers/game";
 import { MAX_ATTEMPTS } from "../config";
 import AttemptRow from "../components/AttemptRow";
@@ -137,6 +138,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       window.removeEventListener("resize", windowResizeListener);
     };
   }, []);
+
+  useEffect(() => {
+    prunePastGamesData(props.wordNumber);
+  }, [props.wordNumber]);
 
   useEffect(() => {
     if (savedData?.attempts) {
