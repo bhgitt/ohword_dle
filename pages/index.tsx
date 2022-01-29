@@ -214,10 +214,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       </Head>
 
       <main
-        className="bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden transition-colors duration-500"
+        className="bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden transition-colors duration-200"
         style={{ height: appHeight }}
       >
-        <div className="container px-8 mx-auto bg-white dark:bg-slate-900 max-w-lg shadow-lg flex-1 flex flex-col justify-center transition-colors duration-500">
+        <div className="container px-8 mx-auto bg-white dark:bg-slate-900 max-w-lg shadow-lg flex-1 flex flex-col justify-center transition-colors duration-200">
           <div className="py-4 lg:py-8 flex-initial flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (

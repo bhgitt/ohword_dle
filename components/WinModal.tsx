@@ -47,20 +47,20 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
       {visible && !!content && (
         <motion.div
           key="win-modal"
-          className="fixed inset-0 bg-white bg-opacity-90 flex items-center"
+          className="fixed inset-0 bg-white dark:bg-slate-900 bg-opacity-90 dark:bg-opacity-95 flex items-center"
           initial={{ opacity: 0 }}
           exit={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.5 } }}
         >
           <button
             type="button"
-            className="absolute top-4 lg:top-8 right-4 lg:right-8"
+            className="absolute top-4 lg:top-8 right-4 lg:right-8 text-slate-800 dark:text-slate-300"
             onClick={onDismiss}
           >
             <X strokeWidth={2} size={32} />
           </button>
 
-          <div className="container px-4 mx-auto">
+          <div className="container px-4 mx-auto text-slate-800 dark:text-slate-300">
             <div className="mb-12">
               <h2 className="text-6xl text-center font-bold mb-2">
                 {content?.title}

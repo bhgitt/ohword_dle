@@ -91,7 +91,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
   }, [onChange, text, handleBackspace, onSubmit]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-2 lg:py-4 lg:px-8 border-t border-slate-200 dark:border-slate-700 flex-none flex flex-col space-y-1 lg:space-y-2 transition-colors duration-500">
+    <div className="bg-white dark:bg-slate-900 p-2 lg:py-4 lg:px-8 border-t border-slate-200 dark:border-slate-700 flex-none flex flex-col space-y-1 lg:space-y-2 transition-colors duration-200">
       <div className="self-center pb-2">
         <SettingsPane />
       </div>
