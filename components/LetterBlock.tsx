@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { useTheme } from "./ThemeContext";
 
 type Props = {
   gameStatus: GameStatus;
@@ -24,12 +25,12 @@ const LetterBlock: FC<Props> = ({
     const getBackgroundClassName = () => {
       switch (letter.result) {
         case "GREEN":
-          return "bg-green-400";
+          return "bg-green-400 dark:bg-green-700";
         case "YELLOW":
-          return "bg-yellow-400";
+          return "bg-yellow-400 dark:bg-yellow-700";
         case "BLACK":
         default:
-          return "bg-slate-100";
+          return "bg-slate-100 dark:bg-slate-900";
       }
     };
     return (
@@ -41,18 +42,30 @@ const LetterBlock: FC<Props> = ({
     );
   }, [letter?.result, animateBackground]);
 
-  const borderColor = useMemo(() => {
+  const [borderColor, textColor] = useMemo(() => {
     if (!letter?.result || !revealResult) {
-      return "";
+      return [
+        "border-slate-200 dark:border-slate-700",
+        "text-slate-600 dark:text-slate-200",
+      ];
     }
     switch (letter.result) {
       case "GREEN":
-        return "border-green-500";
+        return [
+          "border-green-500 dark:border-green-600",
+          "text-green-800 dark:text-green-200",
+        ];
       case "YELLOW":
-        return "border-yellow-500";
+        return [
+          "border-yellow-500 dark:border-yellow-600",
+          "text-yellow-800 dark:text-yellow-200",
+        ];
       case "BLACK":
       default:
-        return "border-slate-200";
+        return [
+          "border-slate-200 dark:border-slate-700",
+          "text-slate-600 dark:text-slate-200",
+        ];
     }
   }, [letter?.result, revealResult]);
 
@@ -96,7 +109,7 @@ const LetterBlock: FC<Props> = ({
       <AnimatePresence>
         {!!letter && (
           <motion.span
-            className="relative text-5xl font-bold text-slate-600 uppercase"
+            className={`relative text-5xl font-bold uppercase ${textColor} transition-colors duration-500`}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{
               opacity: 1,

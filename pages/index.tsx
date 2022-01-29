@@ -24,8 +24,10 @@ import {
   prunePastGamesData,
 } from "../helpers/game";
 import { MAX_ATTEMPTS } from "../config";
+import { useTheme } from "../components/ThemeContext";
 import AttemptRow from "../components/AttemptRow";
 import Keyboard from "../components/Keyboard";
+import SettingsPane from "../components/SettingsPane";
 import WinModal from "../components/WinModal";
 
 const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
@@ -43,6 +45,8 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   const [isBusy, setIsBusy] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
+
+  const { isDarkMode } = useTheme();
 
   const savedData = useMemo(() => {
     const restoredSavedData = getSavedData();
@@ -183,7 +187,7 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   }, [winningAttempt, props.wordNumber]);
 
   return (
-    <div>
+    <div className={isDarkMode ? "dark" : ""}>
       <Head>
         <title>Endy&apos;s Wordle</title>
         <meta
@@ -210,10 +214,10 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
       </Head>
 
       <main
-        className="bg-slate-50 flex flex-col overflow-hidden"
+        className="bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden transition-colors duration-500"
         style={{ height: appHeight }}
       >
-        <div className="container px-8 mx-auto bg-white max-w-lg shadow-lg flex-1 flex flex-col justify-center">
+        <div className="container px-8 mx-auto bg-white dark:bg-slate-900 max-w-lg shadow-lg flex-1 flex flex-col justify-center transition-colors duration-500">
           <div className="py-4 lg:py-8 flex-initial flex flex-col space-y-2">
             {attempts.map((attempt, index) => {
               return (
