@@ -142,7 +142,7 @@ const Keyboard: FC<Props> = ({ letterHistory, onChange, onSubmit, text }) => {
                     }
                     onChange(`${text}${lowerCase(button.label)}`);
                   }}
-                  className={`${getWidthClassName()} h-12 sm:h-16 md:h-16 ${getBackgroundClassName()} rounded-md text-lg md:text-xl transition-colors duration-500`}
+                  className={`${getWidthClassName()} h-12 sm:h-16 md:h-16 ${getBackgroundClassName()} rounded-md text-lg md:text-xl transition-colors duration-100`}
                 >
                   <span className={`${button.icon ? "hidden md:inline" : ""}`}>
                     {button.label}

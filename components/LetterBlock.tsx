@@ -30,7 +30,7 @@ const LetterBlock: FC<Props> = ({
           return "bg-yellow-400 dark:bg-yellow-700";
         case "BLACK":
         default:
-          return "bg-slate-100 dark:bg-slate-900";
+          return "bg-slate-100 dark:bg-slate-800";
       }
     };
     return (
