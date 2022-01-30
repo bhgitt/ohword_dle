@@ -30,7 +30,7 @@ const StatsPane: FC<Props> = ({ buttonRect, visible }) => {
             key="overlay"
             className="fixed inset-0 bg-black dark:bg-slate-900 bg-opacity-50 dark:bg-opacity-95 flex flex-col justify-end"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.5 } }}
+            animate={{ opacity: 1, transition: { duration: 0.3 } }}
             exit={{ opacity: 0, transition: { duration: 0.3 } }}
           >
             <motion.div
@@ -40,13 +40,15 @@ const StatsPane: FC<Props> = ({ buttonRect, visible }) => {
                 e.stopPropagation();
               }}
               style={{ bottom: windowHeight - (buttonRect?.top || 0) - 1 }}
-              initial={{ scaleY: 0, originY: "100%" }}
+              initial={{ scaleY: 0, scaleX: 0.5, originY: "100%" }}
               animate={{
                 scaleY: 1,
+                scaleX: 1,
                 transition: { duration: 0.5, type: "spring" },
               }}
               exit={{
                 scaleY: 0,
+                scaleX: 0.5,
                 transition: { duration: 0.3, ease: "easeIn" },
               }}
             >
