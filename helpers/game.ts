@@ -38,6 +38,9 @@ export const prunePastGamesData = (currentWordNumber: number): void => {
     pruned[wordNumber] = data;
     if (Number(wordNumber) !== currentWordNumber && !!data.attempts) {
       delete pruned[wordNumber].attempts;
+      if (data.status !== "WON") {
+        pruned[wordNumber].status = "LOST";
+      }
     }
   });
   window.localStorage.setItem(
