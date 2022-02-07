@@ -27,7 +27,6 @@ import { MAX_ATTEMPTS } from "../config";
 import { useTheme } from "../components/ThemeContext";
 import AttemptRow from "../components/AttemptRow";
 import Keyboard from "../components/Keyboard";
-import SettingsPane from "../components/SettingsPane";
 import WinModal from "../components/WinModal";
 
 const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
