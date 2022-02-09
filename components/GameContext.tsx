@@ -32,8 +32,11 @@ type GameContextValues = {
   currentAttemptIndex: number;
   error: any;
   letterHistory: LetterHistory[];
+  onDismissWinModal: () => void;
   onKeyboardChange: (value: string) => void;
+  onShowWinModal: () => void;
   onSubmit: () => void;
+  showWinModal: boolean;
   status: GameStatus;
 };
 
@@ -46,8 +49,11 @@ const GameContext = createContext<GameContextValues>({
   currentAttemptIndex: 0,
   error: null,
   letterHistory: [],
+  onDismissWinModal: () => {},
   onKeyboardChange: () => {},
+  onShowWinModal: () => {},
   onSubmit: () => {},
+  showWinModal: false,
   status: "INITIALIZING",
 });
 
@@ -57,6 +63,7 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
   );
   const [attemptError, setAttemptError] = useState<any>(null);
   const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
+  const [showWinModal, setShowWinModal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
@@ -88,6 +95,10 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
     }
   }, [status, attempts]);
 
+  const handleDismissWinModal = useCallback(() => {
+    setShowWinModal(false);
+  }, []);
+
   const handleKeyboardChange = useCallback(
     (newText: string) => {
       if (newText.length > 5 || status !== "PLAYING") {
@@ -108,6 +119,13 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
     },
     [status, currentAttemptIndex, attempts]
   );
+
+  const handleShowWinModal = useCallback(() => {
+    if (!["WON", "LOST"].includes(status)) {
+      return;
+    }
+    setShowWinModal(true);
+  }, [status]);
 
   const handleSubmitAttempt = useCallback(async () => {
     setAttemptError(null);
@@ -195,8 +213,11 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
         currentAttemptIndex,
         error: attemptError,
         letterHistory,
+        onDismissWinModal: handleDismissWinModal,
         onKeyboardChange: handleKeyboardChange,
+        onShowWinModal: handleShowWinModal,
         onSubmit: handleSubmitAttempt,
+        showWinModal: showWinModal,
         status,
       }}
     >

@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "@styled-icons/feather";
 import React, { FC, useEffect, useMemo } from "react";
 import { attemptToString, getWinningAttempt } from "../helpers/attempts";
+import Stats from "./Stats";
 
 type Props = {
   attempts: Attempt[];
@@ -61,7 +62,7 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
           </button>
 
           <div className="container px-4 mx-auto text-slate-800 dark:text-slate-300">
-            <div className="mb-12">
+            <div className="mb-8">
               <h2 className="text-6xl text-center font-bold mb-2">
                 {content?.title}
               </h2>
@@ -74,6 +75,9 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
                   </span>
                 </p>
               )}
+            </div>
+            <div className="mx-auto max-w-lg mb-6 bg-slate-800 p-4 lg:p-8 rounded-xl">
+              <Stats />
             </div>
             <p className="text-center">
               Thank you for playing Endy&apos;s Wordle today!

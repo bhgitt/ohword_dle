@@ -6,14 +6,15 @@ import Keyboard from "./Keyboard";
 import WinModal from "./WinModal";
 
 const Game = () => {
-  const [dismissedWinModal, setDismissedWinModal] = useState(false);
   const {
     attempts,
     currentAttemptIndex,
     error,
     letterHistory,
+    onDismissWinModal,
     onKeyboardChange,
     onSubmit,
+    showWinModal,
     status: gameStatus,
   } = useGame();
 
@@ -43,10 +44,8 @@ const Game = () => {
       <WinModal
         attempts={attempts}
         gameStatus={gameStatus}
-        visible={["WON", "LOST"].includes(gameStatus) && !dismissedWinModal}
-        onDismiss={() => {
-          setDismissedWinModal(true);
-        }}
+        visible={showWinModal}
+        onDismiss={onDismissWinModal}
       />
     </>
   );
