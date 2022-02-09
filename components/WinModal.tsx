@@ -76,7 +76,7 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
                 </p>
               )}
             </div>
-            <div className="mx-auto max-w-lg mb-6 bg-slate-800 p-4 lg:p-8 rounded-xl">
+            <div className="mx-auto max-w-lg mb-6 dark:bg-slate-800 p-4 lg:p-8 rounded-xl">
               <Stats />
             </div>
             <p className="text-center">

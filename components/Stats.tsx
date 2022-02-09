@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { getSavedData } from "../helpers/game";
 
 const Stats = () => {
-  const [played, stats, guesses] = useMemo(() => {
+  const [played, stats, guesses, maxGuessesCount] = useMemo(() => {
     const savedData = getSavedData();
     const savedDataAsArray = Object.entries(savedData).sort(
       ([wordNumberA], [wordNumberB]) =>
@@ -14,6 +14,16 @@ const Stats = () => {
     const played = playedGames.length;
     const wonGames = playedGames.filter(([_, game]) => game.status === "WON");
     const totalWins = wonGames.length;
+    const distribution = (() => {
+      const distribution = times(6, () => 0);
+      wonGames.forEach(([_, { winningAttempt }]) => {
+        if (winningAttempt) {
+          distribution[winningAttempt?.sequence]++;
+        }
+      });
+      return distribution;
+    })();
+    const maxGuessesCount = max(distribution) || 1;
     return [
       played,
       [
@@ -64,15 +74,8 @@ const Stats = () => {
           value: savedDataAsArray[0] ? `#${savedDataAsArray[0][0]}` : "N/A",
         },
       ],
-      (() => {
-        const distribution = times(6, () => 0);
-        wonGames.forEach(([_, { winningAttempt }]) => {
-          if (winningAttempt) {
-            distribution[winningAttempt?.sequence]++;
-          }
-        });
-        return distribution;
-      })(),
+      distribution,
+      maxGuessesCount,
     ];
   }, []);
 
@@ -105,7 +108,7 @@ const Stats = () => {
                 className="h-full bg-slate-300 dark:bg-slate-400 rounded-r-full"
                 initial={{ width: 0 }}
                 animate={{
-                  width: played ? `${(count / played) * 100}%` : 0,
+                  width: played ? `${(count / maxGuessesCount) * 100}%` : 0,
                   transition: { delay: 0.3, duration: 0.5 },
                 }}
               />
