@@ -1,135 +1,21 @@
-import { lowerCase, times } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   GetServerSideProps,
   InferGetServerSidePropsType,
   NextPage,
 } from "next";
-import axios from "axios";
 import Head from "next/head";
 import moment from "moment";
-import {
-  appendAttemptResult,
-  attemptToString,
-  generateLetterHistoryFromAttemptResult,
-  generateLetterHistoryFromAttempts,
-  getWinningAttempt,
-  validateAttempt,
-} from "../helpers/attempts";
-import {
-  getSavedDataForCurrentWord,
-  hasWon,
-  getSavedData,
-  saveDataForCurrentWord,
-  prunePastGamesData,
-} from "../helpers/game";
-import { MAX_ATTEMPTS } from "../config";
 import { useTheme } from "../components/ThemeContext";
-import AttemptRow from "../components/AttemptRow";
-import Keyboard from "../components/Keyboard";
-import WinModal from "../components/WinModal";
+import GameContextProvider from "../components/GameContext";
+import Game from "../components/Game";
 
 const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
   props
 ) => {
   const [appHeight, setAppHeight] = useState(0);
-  const [attempts, setAttempts] = useState<Attempt[]>(
-    times(MAX_ATTEMPTS, () => ({
-      letters: [],
-    }))
-  );
-  const [attemptError, setAttemptError] = useState<any>(null);
-  const [currentAttemptIndex, setCurrentAttemptIndex] = useState(0);
-  const [dismissedWinModal, setDismissedWinModal] = useState(false);
-  const [isBusy, setIsBusy] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [letterHistory, setLetterHistory] = useState<LetterHistory[]>([]);
 
   const { isDarkMode } = useTheme();
-
-  const savedData = useMemo(() => {
-    const restoredSavedData = getSavedData();
-    return getSavedDataForCurrentWord(restoredSavedData, props.wordNumber);
-  }, [props.wordNumber]);
-
-  const gameStatus: GameStatus = useMemo(() => {
-    if (!isInitialized) {
-      return "INITIALIZING";
-    }
-    if (isBusy) {
-      return "BUSY";
-    }
-    if (hasWon(attempts)) {
-      return "WON";
-    }
-    if (currentAttemptIndex + 1 > MAX_ATTEMPTS) {
-      return "LOST";
-    }
-    return "PLAYING";
-  }, [isInitialized, isBusy, attempts, currentAttemptIndex]);
-
-  const winningAttempt = useMemo(() => {
-    if (gameStatus === "WON") {
-      return getWinningAttempt(attempts);
-    }
-  }, [gameStatus, attempts]);
-
-  const handleSubmitAttempt = useCallback(async () => {
-    setAttemptError(null);
-    if (gameStatus !== "PLAYING") {
-      return;
-    }
-    setIsBusy(true);
-    const currentAttempt = attempts[currentAttemptIndex];
-    try {
-      await validateAttempt(currentAttempt);
-      const { data: attemptResult } = await axios.get<AttemptResponse>(
-        "/api/attempt",
-        {
-          params: {
-            word: attemptToString(currentAttempt),
-          },
-        }
-      );
-      setAttempts(
-        appendAttemptResult(attempts, currentAttemptIndex, attemptResult)
-      );
-      setTimeout(() => {
-        setCurrentAttemptIndex(currentAttemptIndex + 1);
-        setLetterHistory(
-          generateLetterHistoryFromAttemptResult(
-            letterHistory,
-            attemptResult.letters
-          )
-        );
-        setIsBusy(false);
-      }, 5 * 500);
-    } catch (error) {
-      setAttemptError(error);
-      setIsBusy(false);
-    }
-  }, [attempts, currentAttemptIndex, gameStatus, letterHistory]);
-
-  const handleKeyboardChange = useCallback(
-    (newText: string) => {
-      if (newText.length > 5 || gameStatus !== "PLAYING") {
-        return;
-      }
-      setAttempts(
-        attempts.map((attempt, index) => {
-          if (index !== currentAttemptIndex) {
-            return attempt;
-          }
-          return {
-            letters: newText
-              .split("")
-              .map((newTextChar) => ({ char: lowerCase(newTextChar) })),
-          };
-        })
-      );
-    },
-    [gameStatus, currentAttemptIndex, attempts]
-  );
 
   useEffect(() => {
     const windowResizeListener = () => {
@@ -142,128 +28,59 @@ const Home: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (
     };
   }, []);
 
-  useEffect(() => {
-    prunePastGamesData(props.wordNumber);
-  }, [props.wordNumber]);
-
-  useEffect(() => {
-    if (savedData?.attempts) {
-      const savedAttempts = savedData.attempts;
-      setAttempts(savedAttempts);
-      const currentAttemptIndex = savedAttempts.findIndex(
-        (attempt) =>
-          attempt.letters.findIndex((letter) => !!letter.result) === -1
-      );
-      setCurrentAttemptIndex(
-        currentAttemptIndex === -1 ? MAX_ATTEMPTS + 1 : currentAttemptIndex
-      );
-      setLetterHistory(generateLetterHistoryFromAttempts(savedAttempts));
-    }
-    setTimeout(() => {
-      setIsInitialized(true);
-    }, 500);
-  }, [savedData]);
-
-  useEffect(() => {
-    saveDataForCurrentWord(
-      {
-        attempts,
-      },
-      props.wordNumber
-    );
-  }, [attempts, props.wordNumber]);
-
-  useEffect(() => {
-    if (["WON", "LOST"].includes(gameStatus)) {
-      saveDataForCurrentWord({ status: gameStatus }, props.wordNumber);
-    }
-  }, [gameStatus, props.wordNumber]);
-
-  useEffect(() => {
-    if (winningAttempt) {
-      saveDataForCurrentWord({ winningAttempt }, props.wordNumber);
-    }
-  }, [winningAttempt, props.wordNumber]);
-
   return (
-    <div className={isDarkMode ? "dark" : ""}>
-      <Head>
-        <title>Endy&apos;s Wordle</title>
-        <meta
-          name="description"
-          content="Daily word-guessing game remake by Endy, inspired by the original Wordle game."
-        />
-        <meta
-          name="image"
-          property="og:image"
-          content="https://wordle.endyhardy.me/cover.png"
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="ndyhrdy" />
-        <meta name="twitter:title" content="Endy's Wordle" />
-        <meta
-          name="twitter:description"
-          content="Daily word-guessing game remake by Endy, inspired by the original Wordle game."
-        />
-        <meta
-          name="twitter:image"
-          content="https://wordle.endyhardy.me/cover.png"
-        />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-      </Head>
+    <GameContextProvider wordNumber={props.wordNumber}>
+      <div className={isDarkMode ? "dark" : ""}>
+        <Head>
+          <title>Endy&apos;s Wordle</title>
+          <meta
+            name="description"
+            content="Daily word-guessing game remake by Endy, inspired by the original Wordle game."
+          />
+          <meta
+            name="image"
+            property="og:image"
+            content="https://wordle.endyhardy.me/cover.png"
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:site" content="ndyhrdy" />
+          <meta name="twitter:title" content="Endy's Wordle" />
+          <meta
+            name="twitter:description"
+            content="Daily word-guessing game remake by Endy, inspired by the original Wordle game."
+          />
+          <meta
+            name="twitter:image"
+            content="https://wordle.endyhardy.me/cover.png"
+          />
+          <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+          />
+          <link rel="manifest" href="/site.webmanifest" />
+        </Head>
 
-      <main
-        className="bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden transition-colors duration-200"
-        style={{ height: appHeight }}
-      >
-        <div className="container px-8 mx-auto bg-white dark:bg-slate-900 max-w-lg shadow-lg flex-1 flex flex-col justify-center transition-colors duration-200">
-          <div className="py-4 lg:py-8 flex-initial flex flex-col space-y-2">
-            {attempts.map((attempt, index) => {
-              return (
-                <AttemptRow
-                  key={`attempt-${index}`}
-                  {...attempt}
-                  error={index === currentAttemptIndex ? attemptError : null}
-                  index={index}
-                  gameStatus={gameStatus}
-                />
-              );
-            })}
-          </div>
-        </div>
-        <Keyboard
-          text={attemptToString(attempts[currentAttemptIndex])}
-          letterHistory={letterHistory}
-          onChange={handleKeyboardChange}
-          onSubmit={handleSubmitAttempt}
-        />
-      </main>
-      <WinModal
-        attempts={attempts}
-        gameStatus={gameStatus}
-        visible={["WON", "LOST"].includes(gameStatus) && !dismissedWinModal}
-        onDismiss={() => {
-          setDismissedWinModal(true);
-        }}
-      />
-    </div>
+        <main
+          className="bg-slate-50 dark:bg-slate-800 flex flex-col overflow-hidden transition-colors duration-200"
+          style={{ height: appHeight }}
+        >
+          <Game />
+        </main>
+      </div>
+    </GameContextProvider>
   );
 };
 

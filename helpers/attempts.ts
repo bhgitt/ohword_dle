@@ -1,4 +1,5 @@
-import axios from "axios";
+import { times } from "lodash";
+import { MAX_ATTEMPTS } from "../config";
 
 export const appendAttemptResult = (
   attempts: Attempt[],
@@ -78,6 +79,12 @@ export const generateLetterHistoryFromAttempts = (
     letterHistory = appendLetterHistory(letterHistory, letter);
   });
   return letterHistory;
+};
+
+export const getDefaultAttemptsState = (): Attempt[] => {
+  return times(MAX_ATTEMPTS, () => ({
+    letters: [],
+  }));
 };
 
 export const getWinningAttempt = (
