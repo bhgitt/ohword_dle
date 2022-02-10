@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
 import { max, times } from "lodash";
-import React, { useMemo } from "react";
+import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { getSavedData } from "../helpers/game";
 
 const Stats = () => {

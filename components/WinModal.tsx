@@ -1,8 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "@styled-icons/feather";
-import React, { FC, useEffect, useMemo } from "react";
+import { Share, X } from "@styled-icons/feather";
+import React, { FC, useCallback, useEffect, useMemo } from "react";
 import { attemptToString, getWinningAttempt } from "../helpers/attempts";
 import Stats from "./Stats";
+import { useGame } from "./GameContext";
+import { MAX_ATTEMPTS } from "../config";
+import { useTheme } from "./ThemeContext";
 
 type Props = {
   attempts: Attempt[];
@@ -11,7 +14,11 @@ type Props = {
   visible: boolean;
 };
 
-const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
+const WinModal: FC<Props> = ({ onDismiss, visible }) => {
+  const { attempts, status: gameStatus, wordNumber } = useGame();
+  const { isDarkMode } = useTheme();
+  const winningAttempt = getWinningAttempt(attempts);
+
   const content = useMemo(() => {
     switch (gameStatus) {
       case "WON":
@@ -27,6 +34,35 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
     }
   }, [gameStatus]);
 
+  const handleShare = useCallback(() => {
+    if (!navigator?.share) {
+      return;
+    }
+    let shareText = `Endy's Wordle ${wordNumber} ${
+      winningAttempt ? winningAttempt.sequence + 1 : "X"
+    }/${MAX_ATTEMPTS}\n\n`;
+    attempts.forEach(({ letters }) => {
+      const attemptContent = letters.reduce((agg, { result }) => {
+        const blockEmoji = (() => {
+          switch (result) {
+            case "GREEN":
+              return "🟩";
+            case "YELLOW":
+              return "🟨";
+            case "BLACK":
+            default:
+              return isDarkMode ? "⬛️" : "⬜️";
+          }
+        })();
+        return agg + blockEmoji;
+      }, "");
+      shareText += `${attemptContent}\n`;
+    });
+    navigator.share({
+      text: shareText,
+    });
+  }, [attempts, isDarkMode, winningAttempt, wordNumber]);
+
   useEffect(() => {
     if (visible) {
       const escapeListener = (e: KeyboardEvent) => {
@@ -40,8 +76,6 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
       };
     }
   }, [visible, onDismiss]);
-
-  const winningAttempt = getWinningAttempt(attempts);
 
   return (
     <AnimatePresence>
@@ -68,12 +102,24 @@ const WinModal: FC<Props> = ({ attempts, gameStatus, onDismiss, visible }) => {
               </h2>
 
               {!!winningAttempt && (
-                <p className="text-xl text-center">
+                <p className="text-xl text-center mb-2">
                   Word of the day:{" "}
                   <span className="uppercase font-bold">
                     {attemptToString(winningAttempt.attempt)}
                   </span>
                 </p>
+              )}
+              {!!navigator.canShare && (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="text-slate-500 dark:text-slate-200 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 flex items-center justify-center px-3 sm:px-4 h-10 sm:h-12 rounded-md sm:rounded-full"
+                  >
+                    <span className="mr-2">Share</span>
+                    <Share size={18} strokeWidth={2} />
+                  </button>
+                </div>
               )}
             </div>
             <div className="mx-auto max-w-lg mb-6 dark:bg-slate-800 p-4 lg:p-8 rounded-xl">

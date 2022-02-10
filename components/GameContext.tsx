@@ -38,6 +38,7 @@ type GameContextValues = {
   onSubmit: () => void;
   showWinModal: boolean;
   status: GameStatus;
+  wordNumber: number;
 };
 
 type ProviderProps = {
@@ -55,6 +56,7 @@ const GameContext = createContext<GameContextValues>({
   onSubmit: () => {},
   showWinModal: false,
   status: "INITIALIZING",
+  wordNumber: 0,
 });
 
 const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
@@ -206,6 +208,11 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
     }
   }, [winningAttempt, wordNumber]);
 
+  useEffect(() => {
+    const shouldShowWinModal = ["WON", "LOST"].includes(status);
+    setShowWinModal(shouldShowWinModal);
+  }, [status]);
+
   return (
     <GameContext.Provider
       value={{
@@ -219,6 +226,7 @@ const GameContextProvider: FC<ProviderProps> = ({ children, wordNumber }) => {
         onSubmit: handleSubmitAttempt,
         showWinModal: showWinModal,
         status,
+        wordNumber,
       }}
     >
       {children}
