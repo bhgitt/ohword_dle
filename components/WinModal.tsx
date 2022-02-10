@@ -42,6 +42,9 @@ const WinModal: FC<Props> = ({ onDismiss, visible }) => {
       winningAttempt ? winningAttempt.sequence + 1 : "X"
     }/${MAX_ATTEMPTS}\n\n`;
     attempts.forEach(({ letters }) => {
+      if (letters.length !== 5) {
+        return;
+      }
       const attemptContent = letters.reduce((agg, { result }) => {
         const blockEmoji = (() => {
           switch (result) {
